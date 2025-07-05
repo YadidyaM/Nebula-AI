@@ -1,0 +1,63 @@
+@keyframes twinkle {
+  0% { opacity: 0.2; }
+  50% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+@keyframes orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.star {
+  animation: twinkle 3s infinite;
+}
+
+.orbit-line {
+  animation: fadeIn 1s ease-out;
+}
+
+.iss-marker {
+  animation: pulse 2s infinite;
+}
+
+.info-panel {
+  animation: slideIn 0.5s ease-out;
+}
+
+.earth-rotation {
+  animation: orbit 240s linear infinite;
+}
+
+.hover-scale {
+  transition: transform 0.2s ease-out;
+}
+
+.hover-scale:hover {
+  transform: scale(1.1);
+}
+
+.glow {
+  filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.5));
+}
+
+.earth-shadow {
+  box-shadow: inset -30px -30px 80px rgba(0,0,0,0.5);
+  border-radius: 50%;
+} 

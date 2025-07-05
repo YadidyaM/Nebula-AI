@@ -1,0 +1,52 @@
+{
+  "data": [
+    {
+      "timestamp": "2025-01-01 00:00:00",
+      "satellite_id": "SAT-10",
+      "ground_station": "GS-3",
+      "inter_satellite_link": "Available",
+      "bandwidth_used_mbps": 348.00918357196866,
+      "available_bandwidth_mbps": 542.663680118816,
+      "conflict_status": "No Conflict",
+      "conflict_resolution": "Granted",
+      "weather_condition": "Rain",
+      "priority": "High",
+      "orbital_position_x_km": -18235.464132741487,
+      "orbital_position_y_km": -24711.17366777397,
+      "orbital_position_z_km": -7795.472733577568,
+      "throughput_mbps": 222.7820543800882
+    },
+    {
+      "timestamp": "2025-01-01 00:15:00",
+      "satellite_id": "SAT-5",
+      "ground_station": "GS-4",
+      "inter_satellite_link": "Available",
+      "bandwidth_used_mbps": 193.66831776988292,
+      "available_bandwidth_mbps": 941.2268022599862,
+      "conflict_status": "No Conflict",
+      "conflict_resolution": "Rescheduled",
+      "weather_condition": "Clear",
+      "priority": "Medium",
+      "orbital_position_x_km": -33744.66141711514,
+      "orbital_position_y_km": -33495.49498630576,
+      "orbital_position_z_km": 2420.47723587526,
+      "throughput_mbps": 308.3048437274033
+    },
+    {
+      "timestamp": "2025-01-01 00:30:00",
+      "satellite_id": "SAT-7",
+      "ground_station": "GS-4",
+      "inter_satellite_link": "Available",
+      "bandwidth_used_mbps": 44.89701851092604,
+      "available_bandwidth_mbps": 382.7465812004969,
+      "conflict_status": "No Conflict",
+      "conflict_resolution": "Granted",
+      "weather_condition": "Storm",
+      "priority": "Medium",
+      "orbital_position_x_km": -29084.176345120395,
+      "orbital_position_y_km": -12968.754224271906,
+      "orbital_position_z_km": -28299.063921286597,
+      "throughput_mbps": 697.2080074900686
+    }
+  ]
+}
