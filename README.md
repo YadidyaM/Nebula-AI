@@ -2,7 +2,13 @@
 
 **NASA-Grade AI-Powered Space Operations Platform with Autonomous Satellite Management**
 ---
-<a href="https://imgbb.com/"><img src="https://i.ibb.co/DgWqfCKk/Screenshot-2025-07-09-161110.png" alt="Screenshot-2025-07-09-161110" border="0"></a>
+<p align="center">
+  <a href="https://imgbb.com/">
+    <img src="https://i.ibb.co/DgWqfCKk/Screenshot-2025-07-09-161110.png"
+         alt="Screenshot-2025-07-09-161110" border="0" />
+  </a>
+</p>
+
 
 ## 📋 **SITUATION** - The Challenge
 Space missions require 24/7 monitoring of thousands of satellites, real-time collision detection, mission planning, and immediate response to critical events. Traditional mission control centers demand constant human oversight, leading to:
