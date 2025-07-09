@@ -7,6 +7,7 @@ import MissionControlCenter from './components/MissionControlCenter';
 import AdvancedTrainingDashboard from './components/AdvancedTrainingDashboard';
 import ResourceManager from './components/ResourceManager';
 import MissionBriefing from './components/MissionBriefing';
+import AIMissionControl from './components/AIMissionControl';
 import AuthButtons from './components/AuthButtons';
 import LoginPage from './components/LoginPage';
 
@@ -247,6 +248,8 @@ function App() {
           apiKey={import.meta.env.VITE_N2YO_API_KEY} 
           onAlert={handleCollisionAlert}
         />;
+      case 'ai-mission-control':
+        return <AIMissionControl />;
       case 'mission-control-center':
         return <MissionControlCenter />;
       case 'training-hub':

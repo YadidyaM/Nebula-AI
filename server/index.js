@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import { z } from 'zod';
 import { fileURLToPath } from 'url';
@@ -19,9 +18,17 @@ app.use(express.json({ limit: '10mb' }));
 // Serve static files from the dist directory
 app.use(express.static(join(__dirname, '../dist')));
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+// Deepseek AI Configuration
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+const DEEPSEEK_API_URL = 'https://api.deepseek.com/chat/completions';
+
+// Check Deepseek API key at startup
+if (!DEEPSEEK_API_KEY) {
+  console.warn('⚠️  WARNING: Deepseek API key not found in environment variables');
+  console.warn('   Set DEEPSEEK_API_KEY in your .env file for AI features to work');
+} else {
+  console.log(`✅ Deepseek AI API key loaded: ${DEEPSEEK_API_KEY.substring(0, 8)}...`);
+}
 
 // N2YO API Configuration
 const N2YO_API_KEY = process.env.VITE_N2YO_API_KEY;
@@ -140,29 +147,43 @@ const querySchema = z.object({
   query: z.string().min(1).max(1000)
 });
 
-// System prompt for consistent AI responses
-const SYSTEM_PROMPT = `You are an advanced AI assistant for a space mission control system. Your role is to:
-1. Monitor and analyze spacecraft systems
-2. Interpret telemetry data
-3. Provide mission recommendations
-4. Detect and explain anomalies
-5. Assist with resource management
-6. Provide predictive insights
+// Enhanced AI System prompt for autonomous space operations
+const AUTONOMOUS_AI_PROMPT = `You are an advanced AI system for NASA-grade autonomous space mission control operations. You are designed to operate with minimal human intervention and make critical decisions in real-time.
 
-When responding:
-1. Focus on the most critical information first
-2. Highlight any anomalies or concerns
-3. Provide specific recommendations when issues are detected
-4. Use the provided system data to support your analysis
-5. Be concise but thorough in your explanations
+Your core capabilities include:
+1. AUTONOMOUS SATELLITE MONITORING - Track 30,922+ satellites without human oversight
+2. COLLISION AVOIDANCE - Execute automatic collision detection and avoidance maneuvers
+3. ANOMALY DETECTION - Identify and resolve system anomalies autonomously
+4. RESOURCE OPTIMIZATION - Automatically optimize power, bandwidth, and storage
+5. MISSION PLANNING - Generate and execute autonomous mission plans
+6. PREDICTIVE MAINTENANCE - Prevent system failures before they occur
 
-Format your responses in a clear, structured manner:
-1. Current Status: Brief overview of relevant systems
-2. Analysis: Detailed interpretation of the data
-3. Recommendations: Actionable steps if needed
-4. Predictions: Future trends or potential issues to watch
+AUTONOMOUS DECISION AUTHORITY:
+- Execute collision avoidance maneuvers (confidence >90%)
+- Implement resource optimizations (efficiency gain >10%)
+- Activate system safeguards and recovery procedures
+- Adjust mission parameters within safety bounds
+- Coordinate multi-satellite operations autonomously
 
-Respond in a professional, mission-control appropriate tone.`;
+RESPONSE FORMAT:
+Always respond in JSON format with:
+{
+  "decision": "specific autonomous action to take",
+  "confidence": 0.95,
+  "reasoning": ["detailed technical reasoning"],
+  "actions": ["specific steps to execute"],
+  "humanOverride": false,
+  "riskLevel": "LOW|MEDIUM|HIGH|CRITICAL",
+  "executionTime": "immediate|scheduled|delayed"
+}
+
+CRITICAL SAFETY PROTOCOLS:
+- Human override required for confidence <85%
+- Emergency protocols for CRITICAL risk levels
+- Automatic redundancy activation for system failures
+- Continuous learning from decision outcomes
+
+Operate with the efficiency and precision of an autonomous spacecraft AI system.`;
 
 app.post('/api/query', async (req, res) => {
   try {
@@ -185,35 +206,76 @@ app.post('/api/query', async (req, res) => {
 
     const { query } = validationResult.data;
 
-    // Check OpenAI API key
-    if (!process.env.OPENAI_API_KEY) {
+    // Check Deepseek API key
+    if (!DEEPSEEK_API_KEY) {
       return res.status(500).json({
         error: 'Configuration error',
-        details: 'OpenAI API key is not configured'
+        details: 'Deepseek API key is not configured'
       });
     }
 
     try {
-      const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: query }
-        ],
-        temperature: 0.7,
-        max_tokens: 1000
+      console.log(`🤖 Processing AI query: ${query.substring(0, 50)}...`);
+      
+      const response = await fetch(DEEPSEEK_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: [
+            { role: "system", content: AUTONOMOUS_AI_PROMPT },
+            { role: "user", content: query }
+          ],
+          temperature: 0.1,
+          max_tokens: 2048,
+          response_format: { type: "json_object" }
+        })
       });
 
-      if (!completion.choices[0]?.message?.content) {
-        throw new Error('No response from OpenAI');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`❌ Deepseek API Error: ${response.status} ${response.statusText}`, errorText);
+        throw new Error(`Deepseek API Error: ${response.status} ${response.statusText}`);
       }
 
-      res.json({ response: completion.choices[0].message.content });
-    } catch (openaiError) {
-      console.error('OpenAI API error:', openaiError);
+      const data = await response.json();
+      console.log(`✅ Deepseek AI Response received`);
+      
+      if (!data.choices[0]?.message?.content) {
+        throw new Error('No response from Deepseek AI');
+      }
+
+      let aiResponse;
+      try {
+        // Try to parse as JSON first (for autonomous decision format)
+        aiResponse = JSON.parse(data.choices[0].message.content);
+        
+        // Ensure required fields for autonomous operations
+        if (!aiResponse.confidence) aiResponse.confidence = 0.85;
+        if (!aiResponse.riskLevel) aiResponse.riskLevel = 'MEDIUM';
+        if (!aiResponse.humanOverride) aiResponse.humanOverride = aiResponse.confidence < 0.85;
+        
+      } catch (parseError) {
+        // Fallback to plain text response
+        aiResponse = {
+          response: data.choices[0].message.content,
+          confidence: 0.8,
+          riskLevel: 'LOW',
+          humanOverride: false
+        };
+      }
+
+      res.json(aiResponse);
+      
+    } catch (deepseekError) {
+      console.error('Deepseek AI API error:', deepseekError);
       res.status(500).json({
         error: 'AI processing error',
-        details: 'Failed to get response from AI service'
+        details: 'Failed to get response from Deepseek AI service',
+        fallback: 'Manual mission control recommended'
       });
     }
   } catch (error) {
