@@ -55,6 +55,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       requiresLiveData: true
     },
     { 
+      id: 'ai-mission-control', 
+      icon: Brain, 
+      label: 'AI Mission Control', 
+      badge: 'AI',
+      priority: 'critical',
+      requiresLiveData: true
+    },
+    { 
       id: 'mission-control-center', 
       icon: Monitor, 
       label: 'Control Center', 
@@ -67,7 +75,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const trainingItems = [
     { 
       id: 'training-hub', 
-      icon: Brain, 
+      icon: BookOpen, 
       label: 'Advanced Training', 
       badge: 'PRO',
       priority: 'high',
@@ -181,6 +189,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           {item.badge && (
             <span className={`px-1.5 py-0.5 text-xs font-bold rounded ${
               item.badge === 'LIVE' ? 'bg-red-500/20 text-red-400 animate-pulse' :
+              item.badge === 'AI' ? 'bg-blue-500/20 text-blue-400 animate-pulse' :
               item.badge === 'PRO' ? 'bg-purple-500/20 text-purple-400' :
               item.badge === 'NEW' ? 'bg-green-500/20 text-green-400' :
               'bg-blue-500/20 text-blue-400'
