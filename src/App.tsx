@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAuth0 } from "@auth0/auth0-react";
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import SatelliteTracking from './components/SatelliteTracking';
@@ -6,6 +7,8 @@ import MissionControlCenter from './components/MissionControlCenter';
 import AdvancedTrainingDashboard from './components/AdvancedTrainingDashboard';
 import ResourceManager from './components/ResourceManager';
 import MissionBriefing from './components/MissionBriefing';
+import AuthButtons from './components/AuthButtons';
+import LoginPage from './components/LoginPage';
 
 // NASA-Grade Dynamic System Imports
 import { RealTimeAPIOrchestrator } from './services/RealTimeAPIOrchestrator';
@@ -99,8 +102,48 @@ const DataQualityIndicator: React.FC<{ tabData: any }> = ({ tabData }) => {
   );
 };
 
+interface CommonProps {
+  realTimeData?: any;
+  systemHealth?: any;
+  isLive?: boolean;
+}
+
+interface SidebarProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+}
+
+const defaultMissionScenario = {
+  id: 'default-mission',
+  name: 'Standard Orbital Mission',
+  description: 'A standard orbital mission scenario',
+  difficulty: 'intermediate',
+  duration: 4,
+  missionType: 'orbital',
+  spacecraft: 'ISS',
+  objectives: [
+    {
+      id: 'obj-1',
+      description: 'Establish stable orbit',
+      type: 'primary',
+      points: 100
+    }
+  ],
+  criticalEvents: [
+    {
+      type: 'system-check',
+      time: 0,
+      probability: 100,
+      severity: 'low',
+      description: 'Initial systems check',
+      requiredAction: 'Verify all systems'
+    }
+  ]
+};
+
 // NASA Mission Control App with Dynamic Real-Time System
 function App() {
+  const { isAuthenticated, isLoading } = useAuth0();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [systemHealth, setSystemHealth] = useState<any>(null);
   const [currentTabData, setCurrentTabData] = useState<any>(null);
@@ -182,9 +225,15 @@ function App() {
     }
   }, [activeTab, isSystemInitialized]);
 
+  // Handle collision alerts
+  const handleCollisionAlert = (alert: any) => {
+    console.log('Collision Alert:', alert);
+    // Add your collision alert handling logic here
+  };
+
   // Render appropriate tab component with real-time data
   const renderActiveTab = () => {
-    const commonProps = {
+    const commonProps: CommonProps = {
       realTimeData: currentTabData?.data,
       systemHealth: systemHealth,
       isLive: currentTabData?.status === 'live'
@@ -194,147 +243,53 @@ function App() {
       case 'dashboard':
         return <Dashboard {...commonProps} />;
       case 'satellite-tracking':
-        return <SatelliteTracking {...commonProps} />;
+        return <SatelliteTracking 
+          apiKey={import.meta.env.VITE_N2YO_API_KEY} 
+          onAlert={handleCollisionAlert}
+        />;
       case 'mission-control-center':
-        return <MissionControlCenter {...commonProps} />;
+        return <MissionControlCenter />;
       case 'training-hub':
-        return <AdvancedTrainingDashboard {...commonProps} />;
+        return <AdvancedTrainingDashboard />;
       case 'resource-manager':
-        return <ResourceManager {...commonProps} />;
-      case 'team-coordination':
-        return <MissionBriefing {...commonProps} title="Team Coordination" />;
-      case 'certification':
-        return <MissionBriefing {...commonProps} title="Certification Hub" />;
-      case 'analytics':
-        return <MissionBriefing {...commonProps} title="Advanced Analytics" />;
+        return <ResourceManager />;
+      case 'mission-briefing':
+        return <MissionBriefing 
+          scenario={defaultMissionScenario}
+          onStartMission={() => console.log('Starting mission...')}
+          onClose={() => setActiveTab('dashboard')}
+        />;
       default:
         return <Dashboard {...commonProps} />;
     }
   };
 
-  // Loading screen for system initialization
-  if (!isSystemInitialized && !initializationError) {
+  // Show loading state
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">🚀</div>
-          <h1 className="text-3xl font-bold text-white mb-4">
-            Initializing NASA Mission Control
-          </h1>
-          <div className="text-blue-300 mb-6">
-            Starting real-time API connections...
-          </div>
-          <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
-          </div>
-          <div className="mt-4 text-sm text-gray-400">
-            • Connecting to NASA APIs<br/>
-            • Establishing satellite tracking<br/>
-            • Initializing telemetry streams<br/>
-            • Configuring mission control systems
-          </div>
-        </div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading Mission Control...</div>
       </div>
     );
   }
 
-  // Error screen for initialization failures
-  if (initializationError) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-red-900 to-purple-900 flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <div className="text-6xl mb-4">🚨</div>
-          <h1 className="text-3xl font-bold text-white mb-4">
-            System Initialization Failed
-          </h1>
-          <div className="text-red-300 mb-6">
-            {initializationError}
-          </div>
-          <button 
-            onClick={() => window.location.reload()}
-            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors"
-          >
-            Retry Initialization
-          </button>
-          <div className="mt-4 text-sm text-gray-400">
-            This may be due to API connectivity issues or configuration problems.
-          </div>
-        </div>
-      </div>
-    );
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return <LoginPage />;
   }
 
-  // Main application interface
+  // Show main application if authenticated
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
-      {/* NASA-Grade System Health Monitoring */}
-      <SystemHealthIndicator systemHealth={systemHealth} />
-      
-      {/* Real-time Data Quality Indicator */}
-      <DataQualityIndicator tabData={currentTabData} />
-
-      {/* Mission Control Header */}
-      <header className="bg-gray-900/50 backdrop-blur-sm border-b border-blue-500/30 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="text-2xl">🚀</div>
-            <div>
-              <h1 className="text-xl font-bold text-white">
-                NEBULA AI Mission Control
-              </h1>
-              <p className="text-blue-300 text-sm">
-                NASA-Grade Real-Time Operations Dashboard
-              </p>
-            </div>
-          </div>
-          
-          {/* Live Status Indicator */}
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <span className="text-green-300 text-sm font-semibold">LIVE</span>
-            {currentTabData?.status === 'live' && (
-              <div className="text-xs text-gray-400">
-                {new Date().toLocaleTimeString()}
-              </div>
-            )}
-          </div>
+    <div className="flex h-screen bg-gray-900 text-white">
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <div className="flex-1 relative">
+        <div className="absolute top-4 left-4 z-50">
+          <AuthButtons />
         </div>
-      </header>
-
-      <div className="flex h-[calc(100vh-80px)]">
-        {/* Dynamic Sidebar with Real-time Status */}
-        <Sidebar 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab}
-          systemHealth={systemHealth}
-          tabManager={tabManagerRef.current}
-        />
-        
-        {/* Main Content Area with Real-time Data */}
-        <main className="flex-1 overflow-auto">
-          {renderActiveTab()}
-        </main>
+        {systemHealth && <SystemHealthIndicator systemHealth={systemHealth} />}
+        {currentTabData && <DataQualityIndicator tabData={currentTabData} />}
+        {renderActiveTab()}
       </div>
-
-      {/* Emergency Alert System */}
-      {systemHealth?.alerts?.some((alert: any) => alert.level === 'emergency') && (
-        <div className="fixed inset-0 bg-red-900/50 flex items-center justify-center z-50">
-          <div className="bg-red-800 border border-red-600 rounded-lg p-6 max-w-md">
-            <div className="text-center">
-              <div className="text-4xl mb-2">🚨</div>
-              <h2 className="text-xl font-bold text-white mb-2">
-                EMERGENCY ALERT
-              </h2>
-              <p className="text-red-200 mb-4">
-                Critical system failure detected. Mission control protocols activated.
-              </p>
-              <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors">
-                Acknowledge Alert
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
