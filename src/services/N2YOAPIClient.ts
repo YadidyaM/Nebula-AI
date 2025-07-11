@@ -44,11 +44,13 @@ export class N2YOAPIClient {
   private requestCount: number = 0;
   private lastRequestTime: number = 0;
   private dailyRequestLimit: number = 1000;
+  private backendURL: string;
 
   constructor(apiKey: string) {
+    this.backendURL = import.meta.env.DEV ? 'http://localhost:3000' : '';
     this.config = {
       apiKey,
-      baseURL: 'https://api.n2yo.com/rest/v1/satellite',
+      baseURL: this.backendURL + '/api/satellite',
       endpoints: {
         // Satellite positions
         positions: '/positions/{id}/{observer_lat}/{observer_lng}/{observer_alt}/{seconds}',
@@ -63,22 +65,7 @@ export class N2YOAPIClient {
         above: '/above/{observer_lat}/{observer_lng}/{observer_alt}/{search_radius}/{category_id}',
         
         // TLE (Two Line Element)
-        tle: '/tle/{id}',
-        
-        // Satellite info
-        info: '/info/{id}',
-        
-        // Category
-        category: '/category/{category_id}',
-        
-        // Search by name
-        search: '/search/{search_name}',
-        
-        // Upcoming launches
-        launches: '/launches/{start}/{end}',
-        
-        // Solar activity
-        solar: '/solar'
+        tle: '/tle/{id}'
       }
     };
   }
@@ -164,8 +151,7 @@ export class N2YOAPIClient {
       url = url.replace(`{${key}}`, encodeURIComponent(value.toString()));
     });
     
-    // Add API key (first and only query parameter)
-    url += `?apiKey=${this.config.apiKey}`;
+    // Don't add API key here - the backend handles it
     
     return url;
   }
@@ -279,66 +265,7 @@ export class N2YOAPIClient {
   }
 
   // Get satellites by category
-  async getSatellitesByCategory(categoryId: number): Promise<APIResponse> {
-    const url = this.buildURL(this.config.endpoints.category, {
-      category_id: categoryId
-    });
-    
-    return this.makeRequest(url);
-  }
-
-  // Search satellites by name
-  async searchSatellites(searchName: string): Promise<APIResponse> {
-    const url = this.buildURL(this.config.endpoints.search, {
-      search_name: searchName
-    });
-    
-    return this.makeRequest(url);
-  }
-
-  // Get upcoming launches
-  async getUpcomingLaunches(startDate?: string, endDate?: string): Promise<APIResponse> {
-    const start = startDate || new Date().toISOString().split('T')[0];
-    const end = endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    
-    const url = this.buildURL(this.config.endpoints.launches, {
-      start: start,
-      end: end
-    });
-    
-    return this.makeRequest(url);
-  }
-
-  // Get solar activity data
-  async getSolarActivity(): Promise<APIResponse> {
-    const url = this.config.baseURL.replace('/satellite', '') + this.config.endpoints.solar + `?apiKey=${this.config.apiKey}`;
-    return this.makeRequest(url);
-  }
-
-  // Preset satellite categories
-  async getBrightestSatellites(observerLat: number, observerLng: number): Promise<APIResponse> {
-    return this.getSatellitesByCategory(1); // Category 1: Brightest satellites
-  }
-
-  async getActiveSpaceStations(observerLat: number, observerLng: number): Promise<APIResponse> {
-    return this.getSatellitesByCategory(2); // Category 2: Space stations
-  }
-
-  async getWeatherSatellites(): Promise<APIResponse> {
-    return this.getSatellitesByCategory(3); // Category 3: Weather satellites
-  }
-
-  async getDisasterMonitoringSatellites(): Promise<APIResponse> {
-    return this.getSatellitesByCategory(8); // Category 8: Disaster monitoring
-  }
-
-  async getEarthResourcesSatellites(): Promise<APIResponse> {
-    return this.getSatellitesByCategory(6); // Category 6: Earth resources
-  }
-
-  async getSearchAndRescueSatellites(): Promise<APIResponse> {
-    return this.getSatellitesByCategory(7); // Category 7: Search and rescue
-  }
+  // Note: Category-based methods removed as they're not supported by the backend proxy
 
   // Real-time tracking for multiple satellites
   async getMultipleSatellitePositions(
